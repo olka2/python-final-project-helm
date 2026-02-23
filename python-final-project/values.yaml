@@ -1,0 +1,81 @@
+replicaCount: 1
+
+image:
+  repository: olka2/test-backend
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+podAnnotations: {}
+podLabels: {}
+
+
+app:
+  port: 8080
+  dataDir: "/data"
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: app.shpakova.devops10.test-danit.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - app.shpakova.devops10.test-danit.com
+      secretName: app-tls
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    acme.cert-manager.io/http01-ingress-class: nginx
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+
+resources:
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+persistence:
+  enabled: true
+  name: python-final-project-pvc
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+  volumeName: data
+  mountPath: "/data"
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
